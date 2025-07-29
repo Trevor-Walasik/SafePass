@@ -1,42 +1,12 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
+# include "SafePass.h"
+# include "SafePassStructDefs.h"
 
 # define clear_terminal() printf("\033[H\033[2J")
 # define print_line_of_dashes() printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 # define LINELENGTH 61
-
-
-typedef struct map {
-    char key;
-    char *username;
-    char *service_name;
-    char *password;
-} Map;
-
-typedef struct services {
-    Map **map_array;
-    int service_count;
-} Services;
-
-
-int main_loop(void);
-int print_user_interface(void);
-int seventy_pad(char key, char *main_string);
-int execute_input(void);
-int add_credentials(void);
-int add_service_to_file(Map *new_service);
-int create_map_and_add_to_array(char *username, char *service_name, char *password);
-int remove_service(int index);
-int next_page(void);
-int prev_page(void);
-int print_services(void);
-char select_key(void);
-int key_to_index(char key);
-int run_service(char key);
-int display_service(int index);
-int prompt_removal(int index);
-int remove_lines(int index);
 
 Services s = {NULL, 0};
 
