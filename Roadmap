@@ -7,4 +7,5 @@ in the order I plan to implement them.
 - Rework pkenc.txt file to be harder for user to modify
 - Add settings file that modifies programs operation, for example...
 - Add Master Key setting that will encrypt pkenc.txt file using AES-256
+- Add first time setting which will prompt user slightly different
 - When very satisfactory version of SafePass terminal program is made, create IDE version

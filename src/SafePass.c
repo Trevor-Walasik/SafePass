@@ -1,3 +1,18 @@
+/* Copyright (c) 2025 Trevor Walasik
+ * All rights reserved
+ *
+ * Welcome to SafePass, a password management program. Currently SafePass is ran in a terminal and
+ * uses keyboard input to add and recall users login credentials. Formaly added passwords are accesed
+ * by entering keys associated with the service, these keys are automatically chosen based on the order
+ * services are added.
+ * 
+ * The way SafePass works is by writing to a text file the credentials a user wants to remember. This text 
+ * file is then read into memory each time the program is run, storing the credentials in the heap. The 
+ * credentials are stored in Services structure defined in SafePassStructDefs.h
+ */
+
+
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
