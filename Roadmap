@@ -1,0 +1,10 @@
+This file will contain a plaintext list of the planned additions to the program
+in the order I plan to implement them.
+
+- Detailed comments to make code more digestible
+- Various error handling in functions that currently do not handle errors
+- Slight refactoring of functions to make code more reusable
+- Rework pkenc.txt file to be harder for user to modify
+- Add settings file that modifies programs operation, for example...
+- Add Master Key setting that will encrypt pkenc.txt file using AES-256
+- When very satisfactory version of SafePass terminal program is made, create IDE version
