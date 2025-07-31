@@ -1,6 +1,14 @@
+/* Copyright (c) 2025 Trevor Walasik
+ * All rights reserved
+ *
+ * This header file contains the function prototypes for functions defined in
+ * SafePass.c.
+ */
+
 # include "SafePassStructDefs.h"
 
 # ifndef SAFE_PASS_H
+
 # define SAFE_PASS_H
 
 int main_loop(void);
