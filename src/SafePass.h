@@ -11,6 +11,7 @@
 
 # define SAFE_PASS_H
 
+int populate_s(FILE *f);
 int main_loop(void);
 int print_user_interface(void);
 int seventy_pad(char key, char *main_string);
