@@ -14,6 +14,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
+# include <windows.h>
 # include "SafePass.h"
 # include "SafePassStructDefs.h"
 
@@ -22,6 +23,12 @@
 # define print_line_of_dashes() printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 /* The length of space inbetween a cell in the UI, will be the max for many values in the program. */
 # define LINELENGTH 61
+
+# define handle_error(error_message) do { \
+    perror(error_message); \
+    exit(EXIT_FAILURE); \
+    } while(0)
+
 
 /* Services structure that will contain all services in the program. */
 Services s = {NULL, 0};
@@ -34,6 +41,8 @@ int main(void) {
 
     if (f == NULL) {
         f = fopen("pkenc.txt", "w");
+        if (f == NULL) handle_error("Error opening file");
+
         fputs("Do Not Edit Text File, For SafePass Use Only", f);
     } else {
        populate_s(f);
@@ -163,7 +172,9 @@ int seventy_pad(char key, char *main_string) {
 int execute_input(void) {
     /* scan for user input and save first char */
     char input_s[LINELENGTH];
-    scanf("%s", &input_s);
+
+    scanf("%s", input_s);
+
     char input = input_s[0];
 
     if (input == '+') {
@@ -173,7 +184,12 @@ int execute_input(void) {
     } else if (input == '<') {
         prev_page();
     } else {
-        run_service(input);
+        if (run_service(input) == -1) {
+            /* Handle invalid input */
+            clear_terminal();
+            printf("Invalid input. No service for key %c", input);
+            Sleep(1500);
+        }
     }
 
     return 0;
@@ -318,7 +334,7 @@ int run_service(char key) {
         prompt_removal(index); 
         return 0;
     } else {
-        return 1;
+        return -1;
     }
 }
 
