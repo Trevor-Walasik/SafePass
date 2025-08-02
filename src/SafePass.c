@@ -173,23 +173,42 @@ int execute_input(void) {
     /* scan for user input and save first char */
     char input_s[LINELENGTH];
 
-    scanf("%s", input_s);
+    fgets(input_s, sizeof(input_s), stdin);
 
-    char input = input_s[0];
+    check_input_length(input_s);
 
-    if (input == '+') {
+    input_s[strcspn(input_s, "\n")] = '\0';
+
+    if (input_s[0] == '+') {
         add_credentials();
-    } else if (input == '>') {
+    } else if (input_s[0] == '>') {
         next_page();
-    } else if (input == '<') {
+    } else if (input_s[0] == '<') {
         prev_page();
     } else {
-        if (run_service(input) == -1) {
+        if (run_service(input_s[0]) == -1) {
             /* Handle invalid input */
             clear_terminal();
-            printf("Invalid input. No service for key %c", input);
+            printf("Invalid input. No service for key %c", input_s[0]);
             Sleep(1500);
         }
+    }
+
+    return 0;
+}
+
+int check_input_length(char *input_s) {
+    /* Check if no newline was found, meaning user input > LINELENGTH */
+    if (strchr(input_s, '\n') == NULL) {
+        /* flush the stdin */
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+
+        clear_terminal();
+        printf("Input too long. Maximum allowed length is %d characters.\n", LINELENGTH - 2);
+        Sleep(1500);
+
+        return -1;
     }
 
     return 0;
@@ -206,22 +225,31 @@ int add_credentials(void) {
     char password[LINELENGTH];
     clear_terminal();
 
-    /* flush the stdin */
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-
     printf("Enter the name of the new service being added: \n");
 
     /* Get service name */
     fgets(service_name, LINELENGTH, stdin);
     service_name[strcspn(service_name, "\n")] = 0;
 
+    
+
     printf("Enter the user name for %s:\n", service_name);
 
     /* Get username */
     fgets(username, LINELENGTH, stdin);
+
+    /*
+    while (check_input_length(username) == -1) {
+        clear_terminal();
+        printf("Enter the user name for %s:\n", service_name);
+
+        fgets(username, LINELENGTH, stdin);
+        username[strcspn(username, "\n")] = 0;
+    } */
+
     username[strcspn(username, "\n")] = 0;
 
+    
     printf("Enter the password for %s:\n", service_name);
 
     /* Get password */
@@ -265,6 +293,8 @@ int create_map_and_add_to_array(char *username, char *service_name, char *passwo
 /* Write the new service to the end of the file. */
 int add_service_to_file(Map *new_service) {
     FILE *f = fopen("pkenc.txt", "a");
+
+    if (f == NULL) handle_error("Error opening file");
 
     fputs("\n", f);
     fputs(new_service->service_name, f);
@@ -354,10 +384,6 @@ int prompt_removal(int index) {
     char input_s[LINELENGTH];
     printf("Would you like to remove this service? (enter %c-%c for removal, anything else to return to home page)\n", '"', '"');
 
-    /* flush the stdin */
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-
     /* Remove newline */
     fgets(input_s, LINELENGTH, stdin);
     input_s[strcspn(input_s, "\n")] = 0;
@@ -402,6 +428,10 @@ int remove_lines(int index) {
     int i;
     FILE *ftemp = fopen("temppkenc.txt", "w");
     FILE *f = fopen("pkenc.txt", "r");
+
+    if (ftemp == NULL) handle_error("Error opening file");
+    if (f == NULL) handle_error("Error opening file");
+
     char buffer[LINELENGTH];
 
     /* Iterate over lines in original file */

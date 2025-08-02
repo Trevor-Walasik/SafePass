@@ -29,5 +29,7 @@ int run_service(char key);
 int display_service(int index);
 int prompt_removal(int index);
 int remove_lines(int index);
+int check_input_length(char *input_s);
+
 
 # endif
