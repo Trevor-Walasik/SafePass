@@ -206,7 +206,7 @@ int check_input_length(char *input_s) {
 
         clear_terminal();
         printf("Input too long. Maximum allowed length is %d characters.\n", LINELENGTH - 2);
-        Sleep(1500);
+        Sleep(500);
 
         return -1;
     }
@@ -222,34 +222,35 @@ int add_credentials(void) {
     /* strings for storing Map strings*/
     char service_name[LINELENGTH];
     char username[LINELENGTH];
-    char password[LINELENGTH];
+    char password[256];
     clear_terminal();
 
     printf("Enter the name of the new service being added: \n");
 
     /* Get service name */
     fgets(service_name, LINELENGTH, stdin);
-    service_name[strcspn(service_name, "\n")] = 0;
 
-    
+    /* Check that input is not to long */
+    while (check_input_length(service_name) == -1) {
+        printf("Enter the name of the new service being added: \n");
+        fgets(service_name, LINELENGTH, stdin);
+    }
+
+    service_name[strcspn(service_name, "\n")] = 0;
 
     printf("Enter the user name for %s:\n", service_name);
 
     /* Get username */
     fgets(username, LINELENGTH, stdin);
 
-    /*
+    /* Check that input is not to long */
     while (check_input_length(username) == -1) {
-        clear_terminal();
         printf("Enter the user name for %s:\n", service_name);
-
         fgets(username, LINELENGTH, stdin);
-        username[strcspn(username, "\n")] = 0;
-    } */
+    }
 
     username[strcspn(username, "\n")] = 0;
 
-    
     printf("Enter the password for %s:\n", service_name);
 
     /* Get password */
