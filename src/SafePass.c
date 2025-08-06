@@ -23,6 +23,7 @@
 # define print_line_of_dashes() printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 /* The length of space inbetween a cell in the UI, will be the max for many values in the program. */
 # define LINELENGTH 61
+# define CREDFILE "pkenc"
 
 # define handle_error(error_message) do { \
     perror(error_message); \
@@ -36,11 +37,11 @@ Services s = {NULL, 0};
 int page = 0;
 
 int main(void) {
-    /* Create pkenc.txt file if not yet created */
-    FILE *f = fopen("pkenc.txt", "r");
+    /* Create CREDFILE file if not yet created */
+    FILE *f = fopen(CREDFILE, "r");
 
     if (f == NULL) {
-        f = fopen("pkenc.txt", "w");
+        f = fopen(CREDFILE, "w");
         if (f == NULL) handle_error("Error opening file");
 
         fputs("Do Not Edit Text File, For SafePass Use Only", f);
@@ -56,7 +57,7 @@ int main(void) {
     return 0;
 }
 
-/* This function will be called once at the start of the main loop, if pkenc.txt has been defined
+/* This function will be called once at the start of the main loop, if CREDFILE has been open
  * before. The function will read the file line by line, creating Map pointers every 3 lines, and
  * properly filling the fields. The Map pointer will then be added to s. */
 int populate_s(FILE *f) {
@@ -197,6 +198,8 @@ int execute_input(void) {
     return 0;
 }
 
+/* This function will take a string and check that it is not too long, it will do so by seeing if a newline 
+ * was read by the fgets. If it is, it will post an error message and return -1. */
 int check_input_length(char *input_s) {
     /* Check if no newline was found, meaning user input > LINELENGTH */
     if (strchr(input_s, '\n') == NULL) {
@@ -293,7 +296,7 @@ int create_map_and_add_to_array(char *username, char *service_name, char *passwo
 
 /* Write the new service to the end of the file. */
 int add_service_to_file(Map *new_service) {
-    FILE *f = fopen("pkenc.txt", "a");
+    FILE *f = fopen(CREDFILE, "a");
 
     if (f == NULL) handle_error("Error opening file");
 
@@ -428,7 +431,7 @@ int remove_service(int index) {
 int remove_lines(int index) {
     int i;
     FILE *ftemp = fopen("temppkenc.txt", "w");
-    FILE *f = fopen("pkenc.txt", "r");
+    FILE *f = fopen(CREDFILE, "r");
 
     if (ftemp == NULL) handle_error("Error opening file");
     if (f == NULL) handle_error("Error opening file");
@@ -456,7 +459,7 @@ int remove_lines(int index) {
     fclose(f);
 
     /* Delete original file */
-    remove("pkenc.txt");
+    remove(CREDFILE);
     /* Rename new file to orginal name */
-    rename("temppkenc.txt", "pkenc.txt");
+    rename("temppkenc.txt", CREDFILE);
 }
