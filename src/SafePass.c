@@ -186,6 +186,8 @@ int execute_input(void) {
         next_page();
     } else if (input_s[0] == '<') {
         prev_page();
+    } else if (input_s[0] == '\t') {
+        exit(0);
     } else {
         if (run_service(input_s[0]) == -1) {
             /* Handle invalid input */
@@ -422,6 +424,8 @@ int remove_service(int index) {
     /* Decrement service counter and realloc memory for map_array */
     s.service_count--;
     s.map_array = realloc(s.map_array, s.service_count*sizeof(Map *));
+
+    return 1;
 }
 
 /* This function will remove the 3 lines of the specified Maps index from the file.
@@ -462,4 +466,6 @@ int remove_lines(int index) {
     remove(CREDFILE);
     /* Rename new file to orginal name */
     rename("temppkenc.txt", CREDFILE);
+
+    return 1;
 }
