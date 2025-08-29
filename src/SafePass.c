@@ -23,7 +23,7 @@
 # define print_line_of_dashes() printf("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 /* The length of space inbetween a cell in the UI, will be the max for many values in the program. */
 # define LINELENGTH 61
-# define CREDFILE "pkenc"
+# define CREDFILE "pkenc.bin"
 
 # define handle_error(error_message) do { \
     perror(error_message); \
@@ -38,13 +38,13 @@ int page = 0;
 
 int main(void) {
     /* Create CREDFILE file if not yet created */
-    FILE *f = fopen(CREDFILE, "r");
+    FILE *f = fopen(CREDFILE, "rb");
 
     if (f == NULL) {
-        f = fopen(CREDFILE, "w");
+        f = fopen(CREDFILE, "wb");
         if (f == NULL) handle_error("Error opening file");
 
-        fputs("Do Not Edit Text File, For SafePass Use Only", f);
+        fwrite("SafePassUserCredentialsFileDoNotEdit", sizeof(char), 37, f);
     } else {
        populate_s(f);
     }
@@ -57,44 +57,50 @@ int main(void) {
     return 0;
 }
 
+
+int read_until_null(FILE *f, char *buffer) {
+    int i = 0;
+    char ch;
+
+    while (fread(&ch, sizeof(char), 1, f) == 1 && ch != '\0') {
+        buffer[i++] = ch;
+    }
+    buffer[i] = '\0';
+
+    return i;
+}
+
+
 /* This function will be called once at the start of the main loop, if CREDFILE has been open
  * before. The function will read the file line by line, creating Map pointers every 3 lines, and
  * properly filling the fields. The Map pointer will then be added to s. */
 int populate_s(FILE *f) {
-    char read_buffer[LINELENGTH];
+    char read_buffer[LINELENGTH  + 1];
     /* read first line */
-    fgets(read_buffer, LINELENGTH, f);
-    
-    /* Loop through the file until the final line is reached */
-    while (fgets(read_buffer, LINELENGTH, f) != NULL) {
-        /* Pointer to new map struct stored in the heap */
+    read_until_null(f, read_buffer);
+
+    while(read_until_null(f, read_buffer) > 0)  {
+
         Map *new_map = malloc(sizeof(*new_map));
         new_map->key = select_key();
-
-        /* Populate the service name field*/
-        read_buffer[strcspn(read_buffer, "\n")] = 0;
+        
         new_map->service_name = malloc(strlen(read_buffer) + 1);
         strcpy(new_map->service_name, read_buffer);
 
-        /* Populate the username field */
-        fgets(read_buffer, LINELENGTH, f);
-        read_buffer[strcspn(read_buffer, "\n")] = 0;
+        read_until_null(f, read_buffer);
+            
         new_map->username = malloc(strlen(read_buffer) + 1);
         strcpy(new_map->username, read_buffer);
 
-        /* Populate the password field */
-        fgets(read_buffer, LINELENGTH, f);
-        read_buffer[strcspn(read_buffer, "\n")] = 0;
+        read_until_null(f, read_buffer);
+
         new_map->password = malloc(strlen(read_buffer) + 1);
         strcpy(new_map->password, read_buffer);
 
-        /* Increment service_count, and allocate more memory in s.map_array to store 
-        * new map pointer. */
         s.service_count++;
         s.map_array = realloc(s.map_array, s.service_count*sizeof(Map *));
         s.map_array[s.service_count - 1] = new_map;
     }
-    
     return 0;
 }
 
@@ -298,16 +304,13 @@ int create_map_and_add_to_array(char *username, char *service_name, char *passwo
 
 /* Write the new service to the end of the file. */
 int add_service_to_file(Map *new_service) {
-    FILE *f = fopen(CREDFILE, "a");
+    FILE *f = fopen(CREDFILE, "ab");
 
     if (f == NULL) handle_error("Error opening file");
 
-    fputs("\n", f);
-    fputs(new_service->service_name, f);
-    fputs("\n", f);
-    fputs(new_service->username, f);
-    fputs("\n", f);
-    fputs(new_service->password, f);
+    fwrite(new_service->service_name, sizeof(char), strlen(new_service->service_name) + 1, f);
+    fwrite(new_service->username, sizeof(char), strlen(new_service->username) + 1, f);
+    fwrite(new_service->password, sizeof(char), strlen(new_service->password) + 1, f);
 
     fclose(f);
 
@@ -434,29 +437,23 @@ int remove_service(int index) {
  * removed, a newline must be removed from the previous line. */
 int remove_lines(int index) {
     int i;
-    FILE *ftemp = fopen("temppkenc.txt", "w");
-    FILE *f = fopen(CREDFILE, "r");
+    FILE *ftemp = fopen("temppkenc.txt", "wb");
+    FILE *f = fopen(CREDFILE, "rb");
 
     if (ftemp == NULL) handle_error("Error opening file");
     if (f == NULL) handle_error("Error opening file");
 
     char buffer[LINELENGTH];
 
-    /* Iterate over lines in original file */
-    for (i = 0; i < (s.service_count)*3 + 1; i++) {
-        fgets(buffer, LINELENGTH, f);
+    /* read and write first line to copy */
+    read_until_null(f, buffer); 
+    fwrite(buffer, sizeof(char), strlen(buffer) + 1, ftemp);
 
-        /* Skip over specified index */
-        if (i < index * 3 + 1 || i > (index * 3 + 3)) {
-
-            /* Handle edge case of removing the final service */
-            if (i == index * 3 && i + 3 == s.service_count * 3) {
-                /* Remove newline */
-                buffer[strcspn(buffer, "\n")] = 0;
-            }
-
-            fputs(buffer, ftemp);
+    while(read_until_null(f, buffer) > 0) {
+        if (i/3 != index) {
+            fwrite(buffer, sizeof(char), strlen(buffer) + 1, ftemp);
         }
+        i++;
     }
 
     fclose(ftemp);
