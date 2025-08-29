@@ -11,6 +11,7 @@
  * credentials are stored in Services structure defined in SafePassStructDefs.h
  */
 
+# include <aes.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -24,6 +25,10 @@
 /* The length of space inbetween a cell in the UI, will be the max for many values in the program. */
 # define LINELENGTH 61
 # define CREDFILE "pkenc.bin"
+uint8_t iv[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+# define reset_iv() uint8_t iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+
+char c[32];
 
 # define handle_error(error_message) do { \
     perror(error_message); \
@@ -37,6 +42,10 @@ Services s = {NULL, 0};
 int page = 0;
 
 int main(void) {
+    
+    get_user_key(c);
+
+
     /* Create CREDFILE file if not yet created */
     FILE *f = fopen(CREDFILE, "rb");
 
@@ -57,7 +66,28 @@ int main(void) {
     return 0;
 }
 
+/* This function will prompt the user to enter an encryption key, it will then store
+ * the key in the provided buffer. The key will be padded or truncated to 32 bytes. */
+int get_user_key(char *key_buffer) {
+    char input[33] = {0}; 
+    printf("Enter master key, this will be used to encrypt and decrypt your data.\nMake sure you can remember it because it will not be stored in this program for security.\nEnter encryption key (max 32 characters): ");
+    fgets(input, sizeof(input), stdin);
 
+    size_t len = strcspn(input, "\n");
+    input[len] = '\0';  
+    input[32] = '\0';
+
+    memset(key_buffer, 0, 32);
+    strncpy((char *)key_buffer, input, 32);
+
+    return 1;
+}
+
+
+
+/* This function will read characters from a file until a null terminator is reached,
+ * storing the characters in buffer. It returns the number of characters read (excluding
+ * the null terminator). */
 int read_until_null(FILE *f, char *buffer) {
     int i = 0;
     char ch;
@@ -92,10 +122,17 @@ int populate_s(FILE *f) {
         new_map->username = malloc(strlen(read_buffer) + 1);
         strcpy(new_map->username, read_buffer);
 
-        read_until_null(f, read_buffer);
-
-        new_map->password = malloc(strlen(read_buffer) + 1);
-        strcpy(new_map->password, read_buffer);
+        uint8_t cipher_text[64];
+        memset(cipher_text, 0, 64);
+        struct AES_ctx ctx;
+        reset_iv();
+        AES_init_ctx_iv(&ctx, (uint8_t *)c, iv);
+        fread(cipher_text, sizeof(char), 64, f);
+        
+        AES_CBC_decrypt_buffer(&ctx, cipher_text, 64);
+        
+        new_map->password = malloc(strlen((char *)cipher_text) + 1);
+        strcpy(new_map->password, (char *)cipher_text);
 
         s.service_count++;
         s.map_array = realloc(s.map_array, s.service_count*sizeof(Map *));
@@ -310,7 +347,16 @@ int add_service_to_file(Map *new_service) {
 
     fwrite(new_service->service_name, sizeof(char), strlen(new_service->service_name) + 1, f);
     fwrite(new_service->username, sizeof(char), strlen(new_service->username) + 1, f);
-    fwrite(new_service->password, sizeof(char), strlen(new_service->password) + 1, f);
+
+    uint8_t cipher_text[64];
+    memset(cipher_text, 0, 64);
+    strncpy((char *)cipher_text, new_service->password, LINELENGTH + 1);
+    struct AES_ctx ctx;
+    reset_iv();
+    AES_init_ctx_iv(&ctx, (uint8_t *)c, iv);
+    AES_CBC_encrypt_buffer(&ctx, cipher_text, 64);
+
+    fwrite(cipher_text, sizeof(char), 64, f);
 
     fclose(f);
 
@@ -436,7 +482,7 @@ int remove_service(int index) {
  * the index + 3. There is one special edge case where if the final service is being 
  * removed, a newline must be removed from the previous line. */
 int remove_lines(int index) {
-    int i;
+    int i = 0;
     FILE *ftemp = fopen("temppkenc.txt", "wb");
     FILE *f = fopen(CREDFILE, "rb");
 
@@ -450,8 +496,15 @@ int remove_lines(int index) {
     fwrite(buffer, sizeof(char), strlen(buffer) + 1, ftemp);
 
     while(read_until_null(f, buffer) > 0) {
-        if (i/3 != index) {
+        if (i == index) {
+            read_until_null(f, buffer);
+            fread(buffer, sizeof(char), 64, f);
+        } else {
             fwrite(buffer, sizeof(char), strlen(buffer) + 1, ftemp);
+            read_until_null(f, buffer);
+            fwrite(buffer, sizeof(char), strlen(buffer) + 1, ftemp);
+            fread(buffer, sizeof(char), 64, f);
+            fwrite(buffer, sizeof(char), 64, ftemp);
         }
         i++;
     }

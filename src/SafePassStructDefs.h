@@ -18,6 +18,14 @@ typedef struct map {
     char *password;
 } Map;
 
+/* Fixed-size struct for binary file operations */
+typedef struct credential {
+    char key;
+    char service_name[61];
+    char username[61];
+    char password[256];
+} Credential;
+
 /* services will simply be a dynamically allocated array of map pointers, and a count
  * int that tracks how many services are in that array. */
 typedef struct services {

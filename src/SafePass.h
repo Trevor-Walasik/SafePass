@@ -31,6 +31,7 @@ int prompt_removal(int index);
 int remove_lines(int index);
 int check_input_length(char *input_s);
 int read_until_null(FILE *f, char *buffer);
+int get_user_key(char *key_buffer);
 
 
 # endif

@@ -4,29 +4,26 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-LDFLAGS =
-
-# Source files
-SRCS = SafePass.c
-OBJS = $(SRCS:.c=.o)
-
-# Executable name
-TARGET = SafePass.exe
 
 # Default target
-all: $(TARGET)
+all: SafePass.exe
 
 # Link the object files into the final executable
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+SafePass.exe: SafePass.o aes.o
+	$(CC) $(CFLAGS) SafePass.o aes.o -o SafePass.exe
 
-# Compile .c files to .o
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+SafePass.o: SafePass.c SafePassStructDefs.h
+	$(CC) $(CFLAGS) -c SafePass.c
+
+aes.o: aes.c aes.h
+	$(CC) $(CFLAGS) -c aes.c
+
+aes.h:
+
+SafePassStructDefs.h:
+
+SafePass.h:
 
 # Clean up build files
 clean:
-	del /Q *.o *.exe 2>nul || true
-
-# For rebuilding everything
-rebuild: clean all
+	del /Q *.o *.exe *.obj *.bak *~ 2>nul || true
