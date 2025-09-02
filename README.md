@@ -9,3 +9,5 @@ containing log in credentials to various services for the user.
 
 AES 256 encryption is used to store the passwords in a binary file. retrievel is based on a master key entered by the 
 user.
+
+<img width="1348" height="836" alt="Image" src="https://github.com/user-attachments/assets/ca631c55-228f-4c00-9423-b652402e0320" />
