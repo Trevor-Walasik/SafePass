@@ -7,5 +7,5 @@ C17.
 Currently SafePass is ran from a shell and is a terminal based program. It will take keyboard inputs to modify a file 
 containing log in credentials to various services for the user. 
 
-AES 256 encryption is used to store the passwords in a plaintext folder. retrievel is based on a master key entered by the 
+AES 256 encryption is used to store the passwords in a binary file. retrievel is based on a master key entered by the 
 user.
