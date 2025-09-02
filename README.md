@@ -13,6 +13,7 @@ user.
 <img width="1348" height="836" alt="Image" src="https://github.com/user-attachments/assets/ca631c55-228f-4c00-9423-b652402e0320" />
 
 # Decrypted with correct master key
-<img width="1585" height="287" alt="Image" src="https://github.com/user-attachments/assets/75ea600e-4053-41e4-9915-627e99bd1f54" />
-# Decrypted with incorrect master key
 <img width="1488" height="230" alt="Image" src="https://github.com/user-attachments/assets/55a84cad-8ca3-43e3-9ebd-f91db5909c2b" />
+
+# Decrypted with incorrect master key
+<img width="1436" height="206" alt="Image" src="https://github.com/user-attachments/assets/3da33f38-1156-4036-89ef-af28a257d3ef" />
