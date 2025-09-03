@@ -25,6 +25,7 @@
 /* The length of space inbetween a cell in the UI, will be the max for many values in the program. */
 # define LINELENGTH 61
 # define CREDFILE "pkenc.bin"
+# define SETFILE "set.bin"
 uint8_t iv[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
 # define reset_iv() uint8_t iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
 
@@ -45,7 +46,16 @@ int main(void) {
     
     get_user_key(c);
 
+    build_cred_file();
+    build_set_file();
 
+    /* Begin Programs Main Loop */
+    main_loop();
+
+    return 0;
+}
+
+int build_cred_file(void) {
     /* Create CREDFILE file if not yet created */
     FILE *f = fopen(CREDFILE, "rb");
 
@@ -60,9 +70,32 @@ int main(void) {
 
     fclose(f);
 
-    /* Begin Programs Main Loop */
-    main_loop();
+    return 1;
+}
 
+
+int build_set_file(void) {
+    FILE *f = fopen(SETFILE, "r");
+    if (f == NULL)  {
+        f = fopen(SETFILE, "w");
+        if (f == NULL) handle_error("Error opening file");
+
+        fputs("first_time:T", f);
+    } else {
+        char curr_char;
+        while (fgetc(f) != ':')
+        curr_char = fgetc(f);
+        if (curr_char == 'T') {
+            update_set("first_time", 'F');
+        }
+    }
+
+    fclose(f);
+
+    return 1;
+}
+
+int update_set(char *setting, char new) {
     return 0;
 }
 
@@ -82,8 +115,6 @@ int get_user_key(char *key_buffer) {
 
     return 1;
 }
-
-
 
 /* This function will read characters from a file until a null terminator is reached,
  * storing the characters in buffer. It returns the number of characters read (excluding

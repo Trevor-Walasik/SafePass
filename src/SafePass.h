@@ -32,6 +32,9 @@ int remove_lines(int index);
 int check_input_length(char *input_s);
 int read_until_null(FILE *f, char *buffer);
 int get_user_key(char *key_buffer);
+int build_cred_file(void);
+int build_set_file(void);
+int update_set(char *setting, char new);
 
 
 # endif
